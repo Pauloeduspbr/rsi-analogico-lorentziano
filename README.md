@@ -2,6 +2,8 @@
 
 Porte para C++ (DLL) e MQL5 de um indicador híbrido de osciladores e machine learning para o MetaTrader 5.
 
+**🇧🇷 Português** · [🇺🇸 English](#english)
+
 ![RSI Analógico Lorentziano](screenshot.png)
 
 ## O que é
@@ -54,3 +56,60 @@ Este repositório é licenciado sob CC-BY-NC-SA-4.0; a lógica original em Pine 
 ## Aviso
 
 Uso educacional e de análise técnica. Não é recomendação de investimento.
+
+---
+
+## English
+
+C++ (DLL) and MQL5 port of a hybrid oscillator / machine-learning indicator for MetaTrader 5.
+
+### What it is
+
+This is a port of the Pine indicator "Machine Learning RSI | AI Classification & Ranking", published on TradingView by Zeiierman, reimplemented from scratch in C++ and MQL5 (no Pine code reused — only the logic was replicated).
+
+The engine starts from the classic RSI, but instead of comparing the raw value against fixed overbought/oversold levels, it turns every confirmed bar into an 8-feature vector derived from RSI:
+
+- RSI value
+- slope
+- acceleration
+- distance from the 50 level
+- percentile within the window
+- RSI volatility
+- fast/slow RSI spread
+- smoothed regime
+
+Every confirmed bar has its feature vector stored together with a future-outcome label — the price move over the following periods, ATR-normalized — building a rolling historical memory bank.
+
+For the current bar, the engine searches that bank for the k nearest neighbors using log-compressed Lorentzian distance (`log(1 + |difference|)` instead of Euclidean distance), which reduces the weight of extreme outliers in the comparison. Neighbors vote weighted by proximity, and the aggregated result produces:
+
+- directional bias (bullish/bearish)
+- analogScore (classification strength)
+- rank (setup quality: trend alignment, volatility, regime, consistency)
+- confidence (model conviction: agreement among analogs, clustering, persistence)
+
+The weights of each of the 8 features are continuously recomputed through an optimization based on Fisher Discriminant Analysis, which identifies which characteristics best separate historically bullish outcomes from bearish ones and reallocates weight toward them.
+
+Long/short signals only fire when rank and confidence both clear configurable thresholds at the same time — the engine does not signal on an isolated level crossing alone. An adaptive Supertrend complements the system as a trend filter and trailing stop: the band width adjusts dynamically with model conviction, narrowing under high conviction and widening under low conviction or ranging conditions.
+
+The calculation runs in the C++ DLL as a stateless engine: persistent state (the memory bank, adaptive weights) lives in MQL5's `INDICATOR_CALCULATIONS` buffers, preserved by the terminal between ticks. The `.mq5` file is the wrapper that calls the DLL and draws the buffers on the chart.
+
+### Installation — precompiled version
+
+1. Copy `ml_rsi.dll` into the MetaTrader 5 terminal's `MQL5/Libraries` folder.
+2. Copy `TV_02_MLRSI.ex5` into the same terminal's `MQL5/Indicators` folder.
+3. Restart MetaTrader 5 (or, in the Navigator, right-click "Indicators" and choose "Refresh").
+4. Drag the `TV_02_MLRSI` indicator from the Navigator onto the chart.
+
+### Build from source
+
+1. Compile the C++ engine (`ml_rsi`) with g++/MinGW-w64 using the `build.sh` script included in `src/cpp/` — it produces the x64 `.dll`.
+2. Open `src/mql5/TV_02_MLRSI.mq5` in MetaTrader 5's MetaEditor.
+3. Compile with F7 to produce `TV_02_MLRSI.ex5`.
+
+### License
+
+This repository is licensed under CC-BY-NC-SA-4.0; the original Pine Script logic was authored by Zeiierman.
+
+### Disclaimer
+
+Educational and technical-analysis use only. Not investment advice.
