@@ -63,6 +63,8 @@ Uso educacional e de análise técnica. Não é recomendação de investimento.
 
 C++ (DLL) and MQL5 port of a hybrid oscillator / machine-learning indicator for MetaTrader 5.
 
+![RSI Analógico Lorentziano](screenshot.png)
+
 ### What it is
 
 This is a port of the Pine indicator "Machine Learning RSI | AI Classification & Ranking", published on TradingView by Zeiierman, reimplemented from scratch in C++ and MQL5 (no Pine code reused — only the logic was replicated).
